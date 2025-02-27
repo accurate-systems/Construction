@@ -137,13 +137,24 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Material Request":{
+        "on_submit": "construction.construction.events.material_request.on_submit",
+        "on_cancel": "construction.construction.events.material_request.on_cancel"
+    },
+    "Purchase Order":{ 
+        "on_submit": "construction.construction.events.purchase_order.on_submit",
+        "on_cancel": "construction.construction.events.purchase_order.on_cancel"
+    },
+     "Purchase Receipt":{ 
+        "on_submit": "construction.construction.events.purchase_receipt.on_submit",
+        "on_cancel": "construction.construction.events.purchase_receipt.on_cancel"
+    },
+     "Stock Entry":{ 
+        "on_submit": "construction.construction.events.stock_entry.on_submit",
+        "on_cancel": "construction.construction.events.stock_entry.on_cancel"
+    }
+}
 
 # Scheduled Tasks
 # ---------------

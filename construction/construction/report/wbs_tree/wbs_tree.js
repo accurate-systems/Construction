@@ -463,14 +463,14 @@ frappe.query_reports["WBS Tree"] = {
                     <i class="fa fa-external-link"></i>
                 </button>`;
 
-        if (data.level < 4){
+        if (data.level < 5){
             buttons += `<button type="button" class="btn btn-xs btn-success add-wbs-btn" 
                     data-wbs-name="${frappe.utils.escape_html(wbsName)}"
                     title="Add WBS Item">
                     <i class="fa fa-plus"></i>
                 </button>`
         }
-        if (data.level == 4){
+        if (data.level == 5){
             buttons += `
                 <button type="button" class="btn btn-xs btn-warning edit-ref-btn" 
                     data-wbs-name="${frappe.utils.escape_html(wbsName)}"
