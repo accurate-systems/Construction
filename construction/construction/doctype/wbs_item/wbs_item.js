@@ -18,7 +18,7 @@ frappe.ui.form.on('WBS item', {
         frm.set_query("cost_center", function() {
             return {
                 filters: {
-                    parent_cost_center: "Divisions - BFCD"
+                    parent_cost_center: "Divisions - CPC"
                 }
             };
         });
