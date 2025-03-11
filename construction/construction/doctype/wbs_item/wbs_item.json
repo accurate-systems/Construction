@@ -96,14 +96,14 @@
   {
    "fieldname": "cost_center",
    "fieldtype": "Link",
-   "label": "Financial Code",
+   "label": "Cost Center",
    "options": "Cost Center"
   },
   {
    "fetch_from": "cost_center.custom_code",
    "fieldname": "cost_center_code",
    "fieldtype": "Data",
-   "label": "Cost Center Code"
+   "label": "Financial Code"
   },
   {
    "fieldname": "combined_code",
