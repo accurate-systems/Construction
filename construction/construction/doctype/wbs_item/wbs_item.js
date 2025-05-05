@@ -14,6 +14,92 @@ frappe.ui.form.on('WBS item', {
             }, __('Actions'));
         }
 
+        // Add Import from Excel button
+        frm.add_custom_button(__('Import from Excel'), function() {
+            let d = new frappe.ui.Dialog({
+                title: __('Import WBS Items from Excel'),
+                fields: [
+                    {
+                        label: __('Excel File'),
+                        fieldname: 'file',
+                        fieldtype: 'Attach',
+                        options: 'File',
+                        reqd: 1,
+                        description: __('Upload an Excel file (.xlsx or .xls) with WBS items data'),
+                        onchange: function() {
+                            // Validate file type when selected
+                            let file = d.get_value('file');
+                            if (file) {
+                                let file_ext = file.split('.').pop().toLowerCase();
+                                if (!['xlsx', 'xls'].includes(file_ext)) {
+                                    frappe.msgprint({
+                                        title: __('Invalid File Type'),
+                                        indicator: 'red',
+                                        message: __('Please upload an Excel file (.xlsx or .xls)')
+                                    });
+                                    d.set_value('file', '');
+                                }
+                            }
+                        }
+                    }
+                ],
+                primary_action_label: __('Import'),
+                primary_action: function(values) {
+                    if (!values.file) {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            indicator: 'red',
+                            message: __('Please select a file to import')
+                        });
+                        return;
+                    }
+
+                    // Show loading message
+                    frappe.show_progress('Importing WBS Items', 0, 100, 'Please wait...');
+
+                    // Call import function with file name
+                    frappe.call({
+                        method: 'construction.construction.doctype.wbs_item.wbs_item_import.import_wbs_from_file',
+                        args: {
+                            file_name: values.file
+                        },
+                        callback: function(response) {
+                            frappe.hide_progress();
+                            
+                            if (response.exc) {
+                                // Handle error response
+                                let error_msg = response.exc[1] || __('Error occurred during import');
+                                frappe.msgprint({
+                                    title: __('Import Failed'),
+                                    indicator: 'red',
+                                    message: error_msg
+                                });
+                            } else if (response.message) {
+                                // Show success message
+                                frappe.show_alert({
+                                    message: __('Import completed successfully'),
+                                    indicator: 'green'
+                                });
+                                frm.reload_doc();
+                            }
+                        },
+                        error: function(err) {
+                            frappe.hide_progress();
+                            frappe.msgprint({
+                                title: __('Import Failed'),
+                                indicator: 'red',
+                                message: __('Error occurred during import. Please try again.')
+                            });
+                        }
+                    });
+                    d.hide();
+                }
+            });
+            
+            
+            d.show();
+        }, __('Actions'));
+
         // Apply filter to Cost Center field
         frm.set_query("cost_center", function() {
             return {
@@ -39,12 +125,6 @@ function apply_wbs_visibility_rules(frm) {
     if (frm.doc.level > 1) {
         frm.set_df_property('project', 'read_only', 1);  // Project fetched automatically
     }
-
-    // if (frm.doc.level > 2) {
-    //     frm.set_df_property('cost_center', 'hidden', 1); // Hide Cost Center for Level 3 and 4
-    // } else {
-    //     frm.set_df_property('cost_center', 'hidden', 0); // Show for Level 2
-    // }
 
     if (frm.doc.level < 5) {
         frm.set_df_property('combined_code', 'hidden', 1); // Hide for Levels 1-3
