@@ -105,6 +105,8 @@ def import_wbs_from_file(file_name):
     }
 
     inserted = {}
+    inserted_docs = []
+
     success = 0
     failed = []
     total = len(df)
@@ -163,8 +165,15 @@ def import_wbs_from_file(file_name):
 
         try:
             doc.insert()
+            # frappe.msgprint("Cost Code: {}, Level: {}, Name: {} ,Added".format(doc.cost_code, doc.level, doc.name))
             frappe.db.commit()
             inserted[code] = doc.name
+            inserted_docs.append({
+            "cost_code": doc.cost_code,
+            "name": doc.name,
+            "level": doc.level
+        })
+
             
 
 
@@ -175,7 +184,7 @@ def import_wbs_from_file(file_name):
 
     # === Second pass: Handle Level 5 WBS items ===
     for row in level_5_rows:
-        frappe.msgprint(str(len(level_5_rows)))
+        
         code, lvl, parent, res_type = row['wbs_code'], row['level'], row['parent_code'], row['res_type']
         desc = row.get("Item Description")
         ur = row.get("Budget Rate") or 0
@@ -192,22 +201,19 @@ def import_wbs_from_file(file_name):
 
         # Lookup parent WBS item (Level 4) using the cost code of current record
         parent_item = None
-        frappe.msgprint("inserted")
-        frappe.msgprint(str(inserted))
+        
 
-        for parent_code in inserted:
-            parent_wbs = frappe.get_doc("WBS item", inserted[parent_code])
+        for parent_code in inserted_docs:
+            parent_wbs = frappe.get_doc("WBS item", parent_code['name'])
            
            
-            frappe.msgprint(f"parent_wbs.cost_code: {parent_wbs.cost_code}")
-            frappe.msgprint(f"target code: {code}")
+            
            
             
             if (normalize_cost_code(parent_wbs.cost_code) == normalize_cost_code(code)):
-                    frappe.msgprint(parent_wbs.level)
-                    frappe.msgprint(parent_wbs.name)
+                    
                     if(int(parent_wbs.level)==int(4)):
-                        frappe.msgprint(f"Match found with parent: {parent_wbs.name}")
+                        # frappe.msgprint(f"Match found with parent: {parent_wbs.name}")
                         parent_item = parent_wbs.name
                         break
 
@@ -266,14 +272,22 @@ def import_wbs_from_file(file_name):
 
         try:
             doc.insert()
+            # frappe.msgprint("Cost Code: {}, Level: {}, Name: {} ,Added".format(doc.cost_code, doc.level, doc.name))
             frappe.db.commit()
             inserted[code] = doc.name
             success += 1
+            inserted_docs.append({
+            "cost_code": doc.cost_code,
+            "name": doc.name,
+            "level": doc.level
+        })
+
         except Exception as e:
             frappe.msgprint(f"[Exception] {code} → {str(e)}")
             failed.append(f"{code} (Insert Error: {e})")
 
     # === Final Result ===
+    frappe.publish_realtime("import_progress", {"status": "Processing complete", "progress": 100})
     return {
         "total": total,
         "success": success,
